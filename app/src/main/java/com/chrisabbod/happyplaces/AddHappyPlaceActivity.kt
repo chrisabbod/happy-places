@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -30,13 +31,13 @@ class AddHappyPlaceActivity : AppCompatActivity() {
     private var cal = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
 
-    var resultLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+    val galleryLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-
             val contentUri = result.data?.data
 
             try {
-                val selectedImageBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
+                val selectedImageBitmap =
+                    MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
                 binding?.ivPlaceImage?.setImageBitmap(selectedImageBitmap)
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -46,6 +47,13 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+    }
+
+    val cameraLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val thumbnail: Bitmap = result.data?.extras?.get("data") as Bitmap
+            binding?.ivPlaceImage?.setImageBitmap(thumbnail)
         }
     }
 
@@ -87,21 +95,13 @@ class AddHappyPlaceActivity : AppCompatActivity() {
             pictureDialog.setItems(pictureDialogItems) { dialog, which ->
                 when (which) {
                     0 -> choosePhotoFromGallery()
-                    1 -> {
-                        Toast.makeText(
-                            this@AddHappyPlaceActivity,
-                            "Camera selection coming soon",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    1 -> takePhotoFromCamera()
                 }
             }.show()
         }
     }
 
-
-
-    private fun choosePhotoFromGallery() {
+    private fun takePhotoFromCamera() {
         Dexter.withContext(this@AddHappyPlaceActivity).withPermissions(
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -109,7 +109,8 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         ).withListener(object : MultiplePermissionsListener {
             override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                 if (report!!.areAllPermissionsGranted()) {
-                    getPictureFromGallery()
+                    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                    cameraLauncher.launch(cameraIntent)
                 }
             }
 
@@ -122,9 +123,26 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         }).onSameThread().check()
     }
 
-    private fun getPictureFromGallery() {
-        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        resultLauncher.launch(galleryIntent)
+    private fun choosePhotoFromGallery() {
+        Dexter.withContext(this@AddHappyPlaceActivity).withPermissions(
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        ).withListener(object : MultiplePermissionsListener {
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if (report!!.areAllPermissionsGranted()) {
+                    val galleryIntent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    galleryLauncher.launch(galleryIntent)
+                }
+            }
+
+            override fun onPermissionRationaleShouldBeShown(
+                permissions: MutableList<PermissionRequest>,
+                token: PermissionToken
+            ) {
+                showRationaleDialogForPermissions()
+            }
+        }).onSameThread().check()
     }
 
     private fun showRationaleDialogForPermissions() {
@@ -157,6 +175,7 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         binding?.etDate?.setText(sdf.format(cal.time).toString())
     }
 
+    //TODO - Remove this if it ends up never getting used
     companion object {
         //Companion objects are used to create constants and static variables
         private const val GALLERY = 1
