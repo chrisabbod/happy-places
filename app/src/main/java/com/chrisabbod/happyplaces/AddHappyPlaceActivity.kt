@@ -1,5 +1,6 @@
 package com.chrisabbod.happyplaces
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
@@ -7,18 +8,20 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import com.chrisabbod.happyplaces.databinding.ActivityAddHappyPlaceBinding
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import java.util.jar.Manifest
 
 class AddHappyPlaceActivity : AppCompatActivity() {
 
@@ -26,6 +29,25 @@ class AddHappyPlaceActivity : AppCompatActivity() {
 
     private var cal = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
+
+    var resultLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+
+            val contentUri = result.data?.data
+
+            try {
+                val selectedImageBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
+                binding?.ivPlaceImage?.setImageBitmap(selectedImageBitmap)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Toast.makeText(
+                    this@AddHappyPlaceActivity,
+                    "Failed to load the image from the gallery",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +99,8 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         }
     }
 
+
+
     private fun choosePhotoFromGallery() {
         Dexter.withContext(this@AddHappyPlaceActivity).withPermissions(
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -85,12 +109,7 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         ).withListener(object : MultiplePermissionsListener {
             override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                 if (report!!.areAllPermissionsGranted()) {
-                    Toast.makeText(
-                        this@AddHappyPlaceActivity,
-                        "Storage READ/WRITE permissions granted. " +
-                                "Now you can select an image from the gallery",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    getPictureFromGallery()
                 }
             }
 
@@ -101,6 +120,11 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                 showRationaleDialogForPermissions()
             }
         }).onSameThread().check()
+    }
+
+    private fun getPictureFromGallery() {
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        resultLauncher.launch(galleryIntent)
     }
 
     private fun showRationaleDialogForPermissions() {
@@ -131,5 +155,10 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
 
         binding?.etDate?.setText(sdf.format(cal.time).toString())
+    }
+
+    companion object {
+        //Companion objects are used to create constants and static variables
+        private const val GALLERY = 1
     }
 }
