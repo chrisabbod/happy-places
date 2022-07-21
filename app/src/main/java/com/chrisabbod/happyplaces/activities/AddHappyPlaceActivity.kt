@@ -1,4 +1,4 @@
-package com.chrisabbod.happyplaces
+package com.chrisabbod.happyplaces.activities
 
 import android.app.Activity
 import android.app.AlertDialog
