@@ -3,7 +3,10 @@ package com.chrisabbod.happyplaces.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import com.chrisabbod.happyplaces.database.DatabaseHandler
 import com.chrisabbod.happyplaces.databinding.ActivityMainBinding
+import com.chrisabbod.happyplaces.models.HappyPlaceModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,5 +21,19 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
             startActivity(intent)
         }
+        getHappyPlacesListFromLocalDb()
+    }
+
+    private fun getHappyPlacesListFromLocalDb() {
+        val dbHandler = DatabaseHandler(this)
+        val getHappyPlaceList: ArrayList<HappyPlaceModel> = dbHandler.getHappyPlacesList()
+
+        if (getHappyPlaceList.isNotEmpty()) {
+            for (i in getHappyPlaceList) {
+                Log.e("Title", i.title)
+                Log.e("Description", i.description)
+            }
+        }
+
     }
 }
