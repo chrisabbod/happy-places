@@ -37,6 +37,9 @@ class AddHappyPlaceActivity : AppCompatActivity() {
 
     private var cal = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
+    private var saveImageToInternalStorage: Uri? = null
+    private var mLatitude: Double = 0.0
+    private var mLongitude: Double = 0.0
 
     val galleryLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -46,7 +49,7 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                 val selectedImageBitmap =
                     MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
 
-                val saveImageToInternalStorage = saveImageToInternalStorage(selectedImageBitmap)
+                saveImageToInternalStorage = saveImageToInternalStorage(selectedImageBitmap)
 
                 Log.e("Saved image: ", "Path :: $saveImageToInternalStorage")
                 binding?.ivPlaceImage?.setImageBitmap(selectedImageBitmap)
@@ -65,17 +68,10 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             val thumbnail: Bitmap = result.data?.extras?.get("data") as Bitmap
 
-            val saveImageToInternalStorage = saveImageToInternalStorage(thumbnail)
+            saveImageToInternalStorage = saveImageToInternalStorage(thumbnail)
 
             Log.e("Saved image: ", "Path :: $saveImageToInternalStorage")
             binding?.ivPlaceImage?.setImageBitmap(thumbnail)
-        }
-    }
-
-    val saveImageLauncher = registerForActivityResult(StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val thumbnail: Bitmap = result.data?.extras?.get("data") as Bitmap
-            saveImageToInternalStorage(thumbnail)
         }
     }
 
@@ -120,6 +116,10 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                     1 -> takePhotoFromCamera()
                 }
             }.show()
+        }
+
+        binding?.btnSave?.setOnClickListener {
+            //TODO: Save image
         }
     }
 
