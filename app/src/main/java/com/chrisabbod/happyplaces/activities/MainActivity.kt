@@ -43,6 +43,18 @@ class MainActivity : AppCompatActivity() {
 
         val placesAdapter = HappyPlacesAdapter(this, happyPlaceList)
         binding?.rvHappyPlacesList?.adapter = placesAdapter
+
+        //Step 4 - Use setOnClickListener on our adapter and then override the onClick function
+        //we created in the adapter class
+        placesAdapter.setOnClickListener(object : HappyPlacesAdapter.OnClickListener {
+            override fun onClick(position: Int, model: HappyPlaceModel) {
+                val intent = Intent(
+                    this@MainActivity,
+                    HappyPlaceDetailsActivity::class.java
+                )
+                startActivity(intent)
+            }
+        })
     }
 
     private fun getHappyPlacesListFromLocalDb() {

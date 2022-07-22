@@ -13,6 +13,9 @@ open class HappyPlacesAdapter(
     private var list: ArrayList<HappyPlaceModel>
 ) : RecyclerView.Adapter<HappyPlacesAdapter.HappyPlacesViewHolder>() {
 
+    //Step 2 - create the following private global variable
+    private var onClickListener: OnClickListener? = null
+
     inner class HappyPlacesViewHolder(binding: ItemHappyPlaceBinding) :
         RecyclerView.ViewHolder(binding.root) {
         val ivPlaceImage = binding.ivPlaceImage
@@ -25,6 +28,11 @@ open class HappyPlacesAdapter(
             .inflate(LayoutInflater.from(parent.context), parent, false))
     }
 
+    //Step 3 - Create a function that binds the onClickListener
+    fun setOnClickListener(onClickListener: OnClickListener) {
+        this.onClickListener = onClickListener
+    }
+
     override fun onBindViewHolder(holder: HappyPlacesViewHolder, position: Int) {
         val model = list[position]
 
@@ -32,6 +40,14 @@ open class HappyPlacesAdapter(
             holder.ivPlaceImage.setImageURI(Uri.parse(model.image))
             holder.tvTitle.text = model.title
             holder.tvDescription.text = model.description
+
+            holder.itemView.setOnClickListener {
+                if (onClickListener != null) {
+                    //Passing position (which element was clicked)
+                    // and model (our HappyPlaceModel so we pass all the data to the next activity)
+                    onClickListener!!.onClick(position, model)
+                }
+            }
         }
     }
 
@@ -39,4 +55,11 @@ open class HappyPlacesAdapter(
         return list.size
     }
 
+    //Add click functionality to the recyclerview list items in 5 steps
+    //This all needs to be done because an adapter cannot have an onClickListener which is why we
+    //need to do this little workaround.
+    //Step 1 - Create an OnClickListener interface inside the adapter
+    interface OnClickListener {
+        fun onClick(position: Int, model: HappyPlaceModel)
+    }
 }
