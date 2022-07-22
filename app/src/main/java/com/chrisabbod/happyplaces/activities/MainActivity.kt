@@ -1,10 +1,12 @@
 package com.chrisabbod.happyplaces.activities
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chrisabbod.happyplaces.adapters.HappyPlacesAdapter
 import com.chrisabbod.happyplaces.database.DatabaseHandler
@@ -15,6 +17,14 @@ class MainActivity : AppCompatActivity() {
 
     private var binding: ActivityMainBinding? = null
 
+    private var resultLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            getHappyPlacesListFromLocalDb()
+        } else {
+            Log.e("Activity", "Cancelled or Back Pressed")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -22,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         binding?.fabAddHappyPlace?.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            startActivity(intent)
+            resultLauncher.launch(intent)
         }
         getHappyPlacesListFromLocalDb()
     }
@@ -47,6 +57,5 @@ class MainActivity : AppCompatActivity() {
             binding?.rvHappyPlacesList?.visibility = View.GONE
             binding?.tvNoRecordsAvailable?.visibility = View.VISIBLE
         }
-
     }
 }
