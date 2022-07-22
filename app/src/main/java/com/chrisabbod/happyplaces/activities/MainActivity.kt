@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
                     this@MainActivity,
                     HappyPlaceDetailsActivity::class.java
                 )
+                intent.putExtra(EXTRA_PLACE_DETAILS, model)
                 startActivity(intent)
             }
         })
@@ -69,5 +70,9 @@ class MainActivity : AppCompatActivity() {
             binding?.rvHappyPlacesList?.visibility = View.GONE
             binding?.tvNoRecordsAvailable?.visibility = View.VISIBLE
         }
+    }
+
+    companion object {
+        var EXTRA_PLACE_DETAILS = "extra_place_details"
     }
 }
