@@ -9,24 +9,24 @@ import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import com.chrisabbod.happyplaces.models.HappyPlaceModel
 
-class DatabaseHandler(context: Context):
+class DatabaseHandler(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
-        companion object {
-            private const val DATABASE_VERSION = 1
-            private const val DATABASE_NAME = "HappyPlacesDatabase"
-            private const val TABLE_HAPPY_PLACE = "HappyPlacesTable"
+    companion object {
+        private const val DATABASE_VERSION = 1
+        private const val DATABASE_NAME = "HappyPlacesDatabase"
+        private const val TABLE_HAPPY_PLACE = "HappyPlacesTable"
 
-            //All the Columns names
-            private const val KEY_ID = "_id"
-            private const val KEY_TITLE = "title"
-            private const val KEY_IMAGE = "image"
-            private const val KEY_DESCRIPTION = "description"
-            private const val KEY_DATE = "date"
-            private const val KEY_LOCATION = "location"
-            private const val KEY_LATITUDE = "latitude"
-            private const val KEY_LONGITUDE = "longitude"
-        }
+        //All the Columns names
+        private const val KEY_ID = "_id"
+        private const val KEY_TITLE = "title"
+        private const val KEY_IMAGE = "image"
+        private const val KEY_DESCRIPTION = "description"
+        private const val KEY_DATE = "date"
+        private const val KEY_LOCATION = "location"
+        private const val KEY_LATITUDE = "latitude"
+        private const val KEY_LONGITUDE = "longitude"
+    }
 
     override fun onCreate(db: SQLiteDatabase?) {
         //creating table with fields
@@ -73,6 +73,33 @@ class DatabaseHandler(context: Context):
 
         db.close() // Closing database connection
         return result
+    }
+
+    fun updateHappyPlace(happyPlace: HappyPlaceModel): Int {
+        val db = this.writableDatabase
+
+        val contentValues = ContentValues()
+        contentValues.put(KEY_TITLE, happyPlace.title) // HappyPlaceModelClass TITLE
+        contentValues.put(KEY_IMAGE, happyPlace.image) // HappyPlaceModelClass IMAGE
+        contentValues.put(
+            KEY_DESCRIPTION,
+            happyPlace.description
+        ) // HappyPlaceModelClass DESCRIPTION
+        contentValues.put(KEY_DATE, happyPlace.date) // HappyPlaceModelClass DATE
+        contentValues.put(KEY_LOCATION, happyPlace.location) // HappyPlaceModelClass LOCATION
+        contentValues.put(KEY_LATITUDE, happyPlace.latitude) // HappyPlaceModelClass LATITUDE
+        contentValues.put(KEY_LONGITUDE, happyPlace.longitude) // HappyPlaceModelClass LONGITUDE
+
+        // Update Row
+        val success = db.update(
+            TABLE_HAPPY_PLACE,
+            contentValues,
+            KEY_ID + "=" + happyPlace.id,
+            null
+        )
+
+        db.close() // Closing database connection
+        return success
     }
 
     @SuppressLint("Range")

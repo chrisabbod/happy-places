@@ -1,10 +1,15 @@
 package com.chrisabbod.happyplaces.adapters
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.chrisabbod.happyplaces.activities.AddHappyPlaceActivity
+import com.chrisabbod.happyplaces.activities.MainActivity
 import com.chrisabbod.happyplaces.databinding.ItemHappyPlaceBinding
 import com.chrisabbod.happyplaces.models.HappyPlaceModel
 

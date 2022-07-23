@@ -7,23 +7,36 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.chrisabbod.happyplaces.adapters.HappyPlacesAdapter
 import com.chrisabbod.happyplaces.database.DatabaseHandler
 import com.chrisabbod.happyplaces.databinding.ActivityMainBinding
 import com.chrisabbod.happyplaces.models.HappyPlaceModel
+import pl.kitek.rvswipetodelete.SwipeToEditCallback
 
 class MainActivity : AppCompatActivity() {
 
     private var binding: ActivityMainBinding? = null
 
-    private var resultLauncher = registerForActivityResult(StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            getHappyPlacesListFromLocalDb()
-        } else {
-            Log.e("Activity", "Cancelled or Back Pressed")
+    private var addHappyPlaceLauncher =
+        registerForActivityResult(StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                getHappyPlacesListFromLocalDb()
+            } else {
+                Log.e("Activity", "Cancelled or Back Pressed")
+            }
         }
-    }
+
+    private var updateHappyPlaceLauncher =
+        registerForActivityResult(StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                getHappyPlacesListFromLocalDb()
+            } else {
+                Log.e("Activity", "Cancelled or Back Pressed")
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
         binding?.fabAddHappyPlace?.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            resultLauncher.launch(intent)
+            addHappyPlaceLauncher.launch(intent)
         }
         getHappyPlacesListFromLocalDb()
     }
@@ -56,6 +69,20 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         })
+
+        val editSwipeHandler = object : SwipeToEditCallback(this) {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val adapter = binding?.rvHappyPlacesList?.adapter as HappyPlacesAdapter
+                val position = viewHolder.adapterPosition
+                val intent = Intent(this@MainActivity, AddHappyPlaceActivity::class.java)
+                intent.putExtra(EXTRA_PLACE_DETAILS, happyPlaceList[position])
+                updateHappyPlaceLauncher.launch(intent)
+                adapter.notifyItemChanged(position)
+            }
+        }
+
+        val editItemTouchHelper = ItemTouchHelper(editSwipeHandler)
+        editItemTouchHelper.attachToRecyclerView(binding?.rvHappyPlacesList)
     }
 
     private fun getHappyPlacesListFromLocalDb() {

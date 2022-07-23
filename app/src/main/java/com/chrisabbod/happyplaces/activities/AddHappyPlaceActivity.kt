@@ -43,6 +43,8 @@ class AddHappyPlaceActivity : AppCompatActivity() {
     private var mLatitude: Double = 0.0
     private var mLongitude: Double = 0.0
 
+    private var mHappyPlaceDetails: HappyPlaceModel? = null
+
     val galleryLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val contentUri = result.data?.data
@@ -88,6 +90,12 @@ class AddHappyPlaceActivity : AppCompatActivity() {
             onBackPressed()
         }
 
+        if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
+            mHappyPlaceDetails = intent.getSerializableExtra(
+                MainActivity.EXTRA_PLACE_DETAILS
+            ) as HappyPlaceModel
+        }
+
         //OnDateSetListener: used to indicate when the user has finished selecting a date
         dateSetListener = DatePickerDialog.OnDateSetListener { view, year, month, dayOfMonth ->
             cal.set(Calendar.YEAR, year)
@@ -96,6 +104,25 @@ class AddHappyPlaceActivity : AppCompatActivity() {
             updateDateInView()
         }
         updateDateInView()
+
+        if (mHappyPlaceDetails != null) {
+            supportActionBar?.title = "Edit Happy Place"
+
+            binding?.apply {
+                etTitle.setText(mHappyPlaceDetails!!.title)
+                etDescription.setText(mHappyPlaceDetails!!.description)
+                etDate.setText(mHappyPlaceDetails!!.date)
+                etLocation.setText(mHappyPlaceDetails!!.location)
+                mLatitude = mHappyPlaceDetails!!.latitude
+                mLongitude = mHappyPlaceDetails!!.longitude
+
+                saveImageToInternalStorage = Uri.parse(
+                    mHappyPlaceDetails!!.image
+                )
+                ivPlaceImage.setImageURI(saveImageToInternalStorage)
+                btnSave.text = "UPDATE"
+            }
+        }
 
         binding?.etDate?.setOnClickListener {
             DatePickerDialog(
@@ -138,21 +165,31 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                 }
                 else -> {
                     val happyPlaceModel = HappyPlaceModel(
-                        0,
+                        if (mHappyPlaceDetails == null) 0 else mHappyPlaceDetails!!.id,
                         binding?.etTitle?.text.toString(),
                         saveImageToInternalStorage.toString(),
                         binding?.etDescription?.text.toString(),
-                        binding?.etDate?.toString().toString(),
+                        binding?.etDate?.text.toString(),
                         binding?.etLocation?.text.toString(),
                         mLatitude,
                         mLongitude
                     )
                     val dbHandler = DatabaseHandler(this)
-                    val addHappyPlace = dbHandler.addHappyPlace(happyPlaceModel)
 
-                    if (addHappyPlace > 0) {
-                        setResult(Activity.RESULT_OK)
-                        finish()
+                    if (mHappyPlaceDetails == null) {
+                        val addHappyPlace = dbHandler.addHappyPlace(happyPlaceModel)
+
+                        if (addHappyPlace > 0) {
+                            setResult(Activity.RESULT_OK)
+                            finish()
+                        }
+                    } else {
+                        val updateHappyPlace = dbHandler.updateHappyPlace(happyPlaceModel)
+
+                        if (updateHappyPlace > 0) {
+                            setResult(Activity.RESULT_OK)
+                            finish()
+                        }
                     }
                 }
             }
