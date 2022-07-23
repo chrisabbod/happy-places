@@ -20,16 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     private var binding: ActivityMainBinding? = null
 
-    private var addHappyPlaceLauncher =
-        registerForActivityResult(StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                getHappyPlacesListFromLocalDb()
-            } else {
-                Log.e("Activity", "Cancelled or Back Pressed")
-            }
-        }
-
-    private var updateHappyPlaceLauncher =
+    private var resultLauncher =
         registerForActivityResult(StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 getHappyPlacesListFromLocalDb()
@@ -45,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         binding?.fabAddHappyPlace?.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            addHappyPlaceLauncher.launch(intent)
+            resultLauncher.launch(intent)
         }
         getHappyPlacesListFromLocalDb()
     }
@@ -76,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
                 val intent = Intent(this@MainActivity, AddHappyPlaceActivity::class.java)
                 intent.putExtra(EXTRA_PLACE_DETAILS, happyPlaceList[position])
-                updateHappyPlaceLauncher.launch(intent)
+                resultLauncher.launch(intent)
                 adapter.notifyItemChanged(position)
             }
         }
