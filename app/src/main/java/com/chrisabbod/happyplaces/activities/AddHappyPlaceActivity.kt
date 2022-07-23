@@ -16,9 +16,14 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import com.chrisabbod.happyplaces.R
 import com.chrisabbod.happyplaces.database.DatabaseHandler
 import com.chrisabbod.happyplaces.databinding.ActivityAddHappyPlaceBinding
 import com.chrisabbod.happyplaces.models.HappyPlaceModel
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -79,6 +84,19 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         }
     }
 
+    private val autocompleteLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            try {
+                val place: Place = Autocomplete.getPlaceFromIntent(result.data)
+                binding?.etLocation?.setText(place.address)
+                mLatitude = place.latLng!!.latitude
+                mLongitude = place.latLng!!.longitude
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddHappyPlaceBinding.inflate(layoutInflater)
@@ -88,6 +106,13 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding?.toolbarAddPlace?.setNavigationOnClickListener {
             onBackPressed()
+        }
+
+        if (!Places.isInitialized()) {
+            Places.initialize(
+                this,
+                resources.getString(R.string.google_maps_api_key)
+            )
         }
 
         if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
@@ -193,6 +218,19 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+
+        binding?.etLocation?.setOnClickListener {
+            // This is a list of fields which have to be passed
+            val fields = listOf(
+                Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG,
+                Place.Field.ADDRESS
+            )
+            // Start the autocomplete intent
+            val intent =
+                Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
+                    .build(this@AddHappyPlaceActivity)
+            autocompleteLauncher.launch(intent)
         }
     }
 

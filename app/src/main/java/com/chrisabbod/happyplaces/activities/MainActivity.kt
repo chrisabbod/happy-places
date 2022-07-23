@@ -79,13 +79,10 @@ class MainActivity : AppCompatActivity() {
         val deleteSwipeHandler = object : SwipeToDeleteCallback(this) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val adapter = binding?.rvHappyPlacesList?.adapter as HappyPlacesAdapter
-                val position = viewHolder.adapterPosition
+                adapter.removeAt(viewHolder.adapterPosition)
 
-                adapter.removeAt(position)
+                getHappyPlacesListFromLocalDb()
 
-                if (adapter.itemCount == 0) {
-                    getHappyPlacesListFromLocalDb()
-                }
             }
         }
 

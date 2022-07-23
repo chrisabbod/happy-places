@@ -18,6 +18,15 @@
         android:theme="@style/Theme.HappyPlaces"
         tools:targetApi="31">
         <activity
+            android:name=".activities.MapActivity"
+            android:label="Happy Place Map"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/CustomNoActionBarTheme"  />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_api_key" />
+
+        <activity
             android:name=".activities.HappyPlaceDetailsActivity"
             android:label="Happy Place Details"
             android:screenOrientation="fullSensor"
