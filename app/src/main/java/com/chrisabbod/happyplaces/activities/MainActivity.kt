@@ -82,6 +82,10 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
 
                 adapter.removeAt(position)
+
+                if (adapter.itemCount == 0) {
+                    getHappyPlacesListFromLocalDb()
+                }
             }
         }
 
