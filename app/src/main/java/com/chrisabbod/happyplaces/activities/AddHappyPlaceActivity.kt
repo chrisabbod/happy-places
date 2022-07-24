@@ -1,5 +1,6 @@
 package com.chrisabbod.happyplaces.activities
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
@@ -8,6 +9,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.LocationManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -84,18 +86,19 @@ class AddHappyPlaceActivity : AppCompatActivity() {
         }
     }
 
-    private val autocompleteLauncher = registerForActivityResult(StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            try {
-                val place: Place = Autocomplete.getPlaceFromIntent(result.data)
-                binding?.etLocation?.setText(place.address)
-                mLatitude = place.latLng!!.latitude
-                mLongitude = place.latLng!!.longitude
-            } catch (e: Exception) {
-                e.printStackTrace()
+    private val autocompleteLauncher =
+        registerForActivityResult(StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                try {
+                    val place: Place = Autocomplete.getPlaceFromIntent(result.data)
+                    binding?.etLocation?.setText(place.address)
+                    mLatitude = place.latLng!!.latitude
+                    mLongitude = place.latLng!!.longitude
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,6 +235,52 @@ class AddHappyPlaceActivity : AppCompatActivity() {
                     .build(this@AddHappyPlaceActivity)
             autocompleteLauncher.launch(intent)
         }
+
+        binding?.tvSelectCurrentLocation?.setOnClickListener {
+            if (!isLocationEnabled()) {
+                Toast.makeText(
+                    this,
+                    "Your location provider is turned off. Please turn it on.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            } else {
+                Dexter.withContext(this)
+                    .withPermissions(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                    .withListener(object : MultiplePermissionsListener {
+                        override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                            if (report!!.areAllPermissionsGranted()) {
+
+                                Toast.makeText(
+                                    this@AddHappyPlaceActivity,
+                                    "Location permission is granted. Now you can request for a current location.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permissions: MutableList<PermissionRequest>?,
+                            token: PermissionToken?
+                        ) {
+                            showRationaleDialogForPermissions()
+                        }
+                    }).onSameThread()
+                    .check()
+            }
+        }
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val locationManager: LocationManager =
+            getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     private fun takePhotoFromCamera() {
