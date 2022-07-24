@@ -1,5 +1,6 @@
 package com.chrisabbod.happyplaces.activities
 
+import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -36,6 +37,12 @@ class HappyPlaceDetailsActivity : AppCompatActivity() {
                 tvDescription.text =  happyPlaceDetailsModel.description
                 tvLocation.text = happyPlaceDetailsModel.location
             }
+        }
+
+        binding?.btnViewOnMap?.setOnClickListener {
+            val intent = Intent(this, MapActivity::class.java)
+            intent.putExtra(MainActivity.EXTRA_PLACE_DETAILS, happyPlaceDetailsModel)
+            startActivity(intent)
         }
     }
 }
