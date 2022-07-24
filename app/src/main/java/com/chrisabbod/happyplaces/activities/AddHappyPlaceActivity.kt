@@ -26,6 +26,7 @@ import com.chrisabbod.happyplaces.R
 import com.chrisabbod.happyplaces.database.DatabaseHandler
 import com.chrisabbod.happyplaces.databinding.ActivityAddHappyPlaceBinding
 import com.chrisabbod.happyplaces.models.HappyPlaceModel
+import com.chrisabbod.happyplaces.utils.GetAddressFromLatLng
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -303,6 +304,22 @@ class AddHappyPlaceActivity : AppCompatActivity() {
             Log.i("Current Latitude", "$mLatitude")
             mLongitude = mLastLocation!!.longitude
             Log.i("Current Longitude", "$mLongitude")
+
+            val addressTask = GetAddressFromLatLng(
+                this@AddHappyPlaceActivity,
+                mLatitude,
+                mLongitude
+            )
+            addressTask.setAddressListener(object: GetAddressFromLatLng.AddressListener {
+                override fun onAddressFound(address: String? ) {
+                    binding?.etLocation?.setText(address)
+                }
+
+                override fun onError() {
+                    Log.e("Get Address::", "Somethig went wrong")
+                }
+            })
+            addressTask.getAddress()
         }
     }
 
@@ -315,9 +332,9 @@ class AddHappyPlaceActivity : AppCompatActivity() {
 
     private fun takePhotoFromCamera() {
         Dexter.withContext(this@AddHappyPlaceActivity).withPermissions(
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            android.Manifest.permission.CAMERA
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
         ).withListener(object : MultiplePermissionsListener {
             override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                 if (report!!.areAllPermissionsGranted()) {
